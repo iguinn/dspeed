@@ -1407,12 +1407,22 @@ class ProcessorManager:
 
                 # reshape just in case there are some missing dimensions
                 arshape = list(param.shape)
-                for idim in range(-1, -1 - len(shape), -1):
-                    if (
-                        len(arshape) < len(shape) + 1 + idim
-                        or arshape[idim] != shape[idim]
-                    ):
-                        arshape.insert(len(arshape) + idim + 1, 1)
+                # check of shape mismatch is just due to wf buffer dim being included
+                # this is the case for some factory functions e.g. fft
+                if (
+                    len(shape) == len(arshape)+1 and
+                    shape[0]== param.get_buffer().shape[0] and 
+                    dim_list[0].grid is None
+                    
+                ):
+                    pass
+                else:
+                    for idim in range(-1, -1 - len(shape), -1):
+                        if (
+                            len(arshape) < len(shape) + 1 + idim
+                            or arshape[idim] != shape[idim]
+                        ):
+                            arshape.insert(len(arshape) + idim + 1, 1)
 
                 if param.is_const:
                     param = param.get_buffer(grid).reshape(arshape)
