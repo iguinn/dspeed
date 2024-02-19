@@ -1411,7 +1411,7 @@ class ProcessorManager:
                 # this is the case for some factory functions e.g. fft
                 if (
                     len(shape) == len(arshape) + 1
-                    and shape[0] == param.get_buffer().shape[0]
+                    and shape[0] == self.proc_chain._block_width
                     and dim_list[0].grid is None
                 ):
                     pass
