@@ -1410,10 +1410,9 @@ class ProcessorManager:
                 # check of shape mismatch is just due to wf buffer dim being included
                 # this is the case for some factory functions e.g. fft
                 if (
-                    len(shape) == len(arshape)+1 and
-                    shape[0]== param.get_buffer().shape[0] and 
-                    dim_list[0].grid is None
-                    
+                    len(shape) == len(arshape) + 1
+                    and shape[0] == param.get_buffer().shape[0]
+                    and dim_list[0].grid is None
                 ):
                     pass
                 else:
