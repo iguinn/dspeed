@@ -3,14 +3,14 @@
 import sys
 from pathlib import Path
 
-from pkg_resources import get_distribution
+from importlib import metadata
 
 sys.path.insert(0, Path(__file__).parents[2].resolve().as_posix())
 sys.path.append(Path("extensions").resolve().as_posix())
 
 project = "dspeed"
 copyright = "2023, The LEGEND Collaboration"
-version = get_distribution("dspeed").version
+version = metadata.version("legend-pydataobj")
 
 extensions = [
     "sphinx.ext.autodoc",
