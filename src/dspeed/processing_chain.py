@@ -1479,11 +1479,9 @@ class ProcessorManager:
         if types is None:
             types = func.types.copy()
         if types is None:
-            raise ProcessingChainError(
-                f"""could not find a type signature list
+            raise ProcessingChainError(f"""could not find a type signature list
                                            for {func.__name__}. Please supply a
-                                           valid list of types."""
-            )
+                                           valid list of types.""")
         if isinstance(types, str) or not isinstance(types, Collection):
             types = [types]
         found_types = [typestr.replace("->", "") for typestr in types]
