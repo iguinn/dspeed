@@ -175,6 +175,15 @@ def dspeed_cli():
 
     config = Props.read_from(args.config)
 
+    if args.writemode is None:
+        wo_mode = None
+    elif args.writemode == "r":
+        wo_mode = "of"
+    elif args.writemode == "u":
+        wo_mode = "o"
+    elif args.writemode == "a":
+        wo_mode = "a"
+
     for i in range(len(args.raw_lh5_file)):
         build_dsp(
             args.raw_lh5_file[i],
@@ -184,7 +193,7 @@ def dspeed_cli():
             database=args.database,
             outputs=args.output_pars,
             n_entries=args.max_rows,
-            write_mode=args.writemode,
+            wo_mode=wo_mode,
             buffer_len=args.chunk,
             block_width=args.block,
         )

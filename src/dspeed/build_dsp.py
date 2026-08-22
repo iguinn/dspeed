@@ -32,6 +32,7 @@ def build_dsp(
     base_group: str = None,
     database: str | Mapping = None,
     outputs: Collection[str] = None,
+    wo_mode: str = None,
     write_mode: str = None,
     entry_list: Collection[int] = None,
     entry_mask: Collection[bool] = None,
@@ -99,10 +100,34 @@ def build_dsp(
     n_max
         number of waveforms to process.
     write_mode
+        DEPRECATED: use ``wo_mode`` instead
+
         - ``None`` -- create new output file if it does not exist
         - `'r'` -- delete existing output file with same name before writing
         - `'a'` -- append to end of existing output file
         - `'u'` -- update values in existing output file
+
+    wo_mode
+        - ``None`` (default): only proceed with writing if the file
+            does already not exist on disk
+        - ``write_safe`` or ``w``: only proceed with writing if the
+            object does not already exist in the file.
+        - ``append`` or ``a``: append along axis 0 (the first dimension)
+            of array-like objects and array-like subfields of structs.
+            :class:`~.lgdo.scalar.Scalar` objects get overwritten.
+        - ``overwrite`` or ``o``: replace data in the file if present,
+            starting from `write_start`. Note: overwriting with `write_start` =
+            end of array is the same as ``append``.
+        - ``overwrite_file`` or ``of``: delete file if present prior to
+            writing to it if the file is not already open. `write_start` should
+            be 0 (it's ignored). Writes to an already-opened file will use ``append``.
+        - ``append_column`` or ``ac``: append fields/columns from an
+            :class:`~.lgdo.struct.Struct` `obj` (and derived types such as
+            :class:`~.lgdo.table.Table`) only if there is an existing
+            :class:`~.lgdo.struct.Struct` in the `lh5_file` with the same `name`.
+            If there are matching fields, it errors out. If appending to a
+            ``Table`` and the size of the new column is different from the size
+            of the existing table, it errors out.
     buffer_len
         number of waveforms to read/write from/to disk at a time.
     block_width
@@ -126,7 +151,7 @@ def build_dsp(
         will process all channels beginning with 2, except for 2000000, with config3.
     """
     db_parser = re.compile(r"(?![^\w_.])db\.[\w_.]+")
-    raw_store = lh5.LH5Store(keep_open=True)
+    raw_store = lh5.LH5Store(keep_open=True, default_mode="r")
 
     if isinstance(lh5_tables, str):
         lh5_tables = [lh5_tables]
@@ -221,18 +246,23 @@ def build_dsp(
         # Output to tables
         dsp_st = Struct()
     else:
+        if write_mode is not None:
+            if write_mode == "r":
+                wo_mode = "of"
+            elif write_mode == "a":
+                wo_mode = "a"
+            elif write_mode == "u":
+                wo_mode = "o"
+            log.warning(
+                f"write_mode is deprecated, use wo_mode instead. Using wo_mode='{wo_mode}'"
+            )
         # Output to file
-        if write_mode is None and os.path.isfile(dsp_out):
+        if wo_mode is None and os.path.isfile(dsp_out):
             raise FileExistsError(
-                f"output file {dsp_out} exists. Set the 'write_mode' keyword"
+                f"output file {dsp_out} exists. Set the 'wo_mode' keyword"
             )
 
-        # clear existing output files
-        if write_mode == "r":
-            if os.path.isfile(dsp_out):
-                os.remove(dsp_out)
-
-        dsp_st = lh5.LH5Store(keep_open=True)
+        dsp_st = lh5.LH5Store(keep_open=True, default_mode=wo_mode)
 
     # loop over tables to run DSP on
     for tb in lh5_tables:
